@@ -94,15 +94,15 @@ async def perfil(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = load_data()
     player = data[str(user_id)]
     msg = (
-        f"👤 Perfil de {update.effective_user.first_name}:
+        f"👤 Perfil de {update.effective_user.first_name}:\n"
 "
-        f"💰 ZappCoins: {player['coins']}
+        f"💰 ZappCoins: {player['coins']}\n"
 "
-        f"⭐ Nível: {player['level']}
+        f"⭐ Nível: {player['level']}\n"
 "
-        f"✨ XP: {player['xp']}/{player['level']*20}
+        f"✨ XP: {player['xp']}/{player['level']*20}\n"
 "
-        f"🎮 Convites: {player['invites']}"
+        f"🎮 Convites: {player['invites']}\n"
     )
     await update.message.reply_text(msg)
 
