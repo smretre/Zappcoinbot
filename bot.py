@@ -2,7 +2,6 @@
 import logging
 import time
 import json
-import os
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
@@ -12,11 +11,12 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-BOT_TOKEN = os.environ.get('BOT_TOKEN')
+BOT_TOKEN = '7578757304:AAGGvhz7cSkpga36bgfy7COrUD8PRrzorKw'  # Substitua pelo seu token do BotFather
 
 DATA_FILE = 'userdata.json'
-COOLDOWN_TIME = 600
+COOLDOWN_TIME = 600  # 10 minutos
 
+# ----- Utilitários -----
 def load_data():
     try:
         with open(DATA_FILE, 'r') as f:
@@ -45,18 +45,19 @@ def init_player(user_id, username=None):
             data[str(user_id)]['username'] = username
     save_data(data)
 
+# ----- Comandos -----
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     init_player(user_id, update.effective_user.username)
     await update.message.reply_text(
-        "Bem-vindo ao *Crypto Miner Bot*!
+        """👋 Bem-vindo ao *Crypto Miner Bot*!
 
 "
-        "Use /minerar para minerar ZappCoins
+        "Use /minerar para minerar ZappCoins ⛏️
 "
-        "Use /perfil para ver seu progresso
+        "Use /perfil para ver seu progresso 💼
 "
-        "Use /comprar para adquirir mais moedas",
+        "Use /comprar para adquirir mais moedas 💰""",
         parse_mode=ParseMode.MARKDOWN
     )
 
@@ -71,7 +72,7 @@ async def mine(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if elapsed < COOLDOWN_TIME:
         wait = int(COOLDOWN_TIME - elapsed)
-        await update.message.reply_text(f"Aguarde {wait} segundos para minerar novamente.")
+        await update.message.reply_text(f"⏳ Aguarde {wait} segundos para minerar novamente.")
         return
 
     coins_earned = 10 + player['level'] * 2
@@ -82,10 +83,10 @@ async def mine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if player['xp'] >= player['level'] * 20:
         player['level'] += 1
         player['xp'] = 0
-        await update.message.reply_text(f"Parabéns! Você subiu para o nível {player['level']}!")
+        await update.message.reply_text(f"🚀 Parabéns! Você subiu para o nível {player['level']}!")
 
     save_data(data)
-    await update.message.reply_text(f"Você minerou {coins_earned} ZappCoins!")
+    await update.message.reply_text(f"⛏️ Você minerou {coins_earned} ZappCoins!")
 
 async def perfil(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -93,42 +94,41 @@ async def perfil(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = load_data()
     player = data[str(user_id)]
     msg = (
-        f"Perfil de {update.effective_user.first_name}:
+        f"👤 Perfil de {update.effective_user.first_name}:\n
 "
-        f"ZappCoins: {player['coins']}
+        f"💰 ZappCoins: {player['coins']}\n
 "
-        f"Nível: {player['level']}
+        f"⭐ Nível: {player['level']}\n
 "
-        f"XP: {player['xp']}/{player['level']*20}
+        f"✨ XP: {player['xp']}/{player['level']*20}\n
 "
-        f"Convites: {player['invites']}
-"
+        f"🎮 Convites: {player['invites']}"
     )
     await update.message.reply_text(msg)
 
 async def comprar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = (
-        "*Comprar ZappCoins*
+        "💰 *Comprar ZappCoins*
 
 "
         "Escolha um dos pacotes abaixo e envie o valor para a chave PIX:
 
 "
-        "500 ZPC – *R$2,99*
+        "🔹 500 ZPC – *R$2,99*
 "
-        "1000 ZPC – *R$4,99*
+        "🔸 1000 ZPC – *R$4,99*
 "
-        "2500 ZPC – *R$9,99*
+        "💎 2500 ZPC – *R$9,99*
 
 "
-        "*Chave PIX:*
+        "🔑 *Chave PIX (aleatória):*
 "
         "`5204f881-cbb8-4388-ac89-2eabeb390f58`
 
 "
-        "Após o pagamento, envie o comprovante aqui mesmo no chat.
+        "📤 Após o pagamento, envie o comprovante aqui mesmo no chat.
 "
-        "Assim que confirmado, você receberá as moedas manualmente!"
+        "⚠️ Assim que confirmado, você receberá as moedas manualmente!"
     )
     await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
 
@@ -145,11 +145,12 @@ async def liberar(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if 'username' in info and info['username'] == username:
             info['coins'] += quantidade
             save_data(data)
-            await update.message.reply_text(f"{quantidade} ZPC adicionados para @{username}.")
+            await update.message.reply_text(f"✅ {quantidade} ZPC adicionados para @{username}.")
             return
 
-    await update.message.reply_text(f"Usuário @{username} não encontrado no banco de dados.")
+    await update.message.reply_text(f"❌ Usuário @{username} não encontrado no banco de dados.")
 
+# ----- Main -----
 async def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
@@ -159,7 +160,7 @@ async def main():
     app.add_handler(CommandHandler("comprar", comprar))
     app.add_handler(CommandHandler("liberar", liberar))
 
-    print("Bot rodando...")
+    print("🤖 Bot rodando...")
     await app.run_polling()
 
 if __name__ == "__main__":
