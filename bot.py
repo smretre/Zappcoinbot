@@ -50,15 +50,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     init_player(user_id, update.effective_user.username)
     await update.message.reply_text(
-        """👋 Bem-vindo ao *Crypto Miner Bot*!
+    """👋 Bem-vindo ao *Crypto Miner Bot*!
 
-"
-        "Use /minerar para minerar ZappCoins ⛏️
-"
-        "Use /perfil para ver seu progresso 💼
-"
-        "Use /comprar para adquirir mais moedas 💰""",
-        parse_mode=ParseMode.MARKDOWN
+Use /minerar para minerar ZappCoins ⛏️
+Use /perfil para ver seu progresso 💼
+Use /comprar para adquirir mais moedas 💰""",
+    parse_mode=ParseMode.MARKDOWN
     )
 
 async def mine(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -93,45 +90,29 @@ async def perfil(update: Update, context: ContextTypes.DEFAULT_TYPE):
     init_player(user_id, update.effective_user.username)
     data = load_data()
     player = data[str(user_id)]
+    
     msg = (
-        f"👤 Perfil de {update.effective_user.first_name}:\n
-"
-        f"💰 ZappCoins: {player['coins']}\n
-"
-        f"⭐ Nível: {player['level']}\n
-"
-        f"✨ XP: {player['xp']}/{player['level']*20}\n
-"
+        f"👤 Perfil de {update.effective_user.first_name}:\n"
+        f"💰 ZappCoins: {player['coins']}\n"
+        f"⭐ Nível: {player['level']}\n"
+        f"✨ XP: {player['xp']}/{player['level'] * 20}\n"
         f"🎮 Convites: {player['invites']}"
     )
     await update.message.reply_text(msg)
 
 async def comprar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = (
-        "💰 *Comprar ZappCoins*
-
-"
-        "Escolha um dos pacotes abaixo e envie o valor para a chave PIX:
-
-"
-        "🔹 500 ZPC – *R$2,99*
-"
-        "🔸 1000 ZPC – *R$4,99*
-"
-        "💎 2500 ZPC – *R$9,99*
-
-"
-        "🔑 *Chave PIX (aleatória):*
-"
-        "`5204f881-cbb8-4388-ac89-2eabeb390f58`
-
-"
-        "📤 Após o pagamento, envie o comprovante aqui mesmo no chat.
-"
+        "💰 *Comprar ZappCoins*\n\n"
+        "Escolha um dos pacotes abaixo e envie o valor para a chave PIX:\n\n"
+        "🔹 500 ZPC – *R$2,99*\n"
+        "🔸 1000 ZPC – *R$4,99*\n"
+        "💎 2500 ZPC – *R$9,99*\n\n"
+        "🔑 *Chave PIX (aleatória):*\n"
+        "`5204f881-cbb8-4388-ac89-2eabeb390f58`\n\n"
+        "📤 Após o pagamento, envie o comprovante aqui mesmo no chat.\n"
         "⚠️ Assim que confirmado, você receberá as moedas manualmente!"
     )
     await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
-
 async def liberar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args or len(context.args) < 2:
         await update.message.reply_text("Uso: /liberar @usuario quantidade")
