@@ -141,16 +141,22 @@ async def liberar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"❌ Usuário @{username} não encontrado no banco de dados.")
 
 # ----- Main -----
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 import asyncio
-from telegram.ext import ApplicationBuilder
+import os
+
+TOKEN = os.getenv("TOKEN")
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Olá! Seu bot está funcionando!")
 
 async def main():
-    application = ApplicationBuilder().token("7578757304:AAGGvhz7cSkpga36bgfy7COrUD8PRrzorKw").build()
-    await application.initialize()
-    await application.start()
-    await application.run_polling()
-    await application.stop()
-    await application.shutdown()
+    application = ApplicationBuilder().token(TOKEN).build()
+    application.add_handler(CommandHandler("start", start))
+    
+    # ESSA É A PARTE IMPORTANTE
+    await application.run_polling()  # Mantém o bot rodando
 
 if __name__ == "__main__":
     asyncio.run(main())
