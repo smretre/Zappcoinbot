@@ -1,366 +1,98 @@
-import logging
-import time
-import json
-import asyncio
-import os
-from telegram import Update, BotCommand
-from telegram.constants import ParseMode
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+import logging import time import json import asyncio import os from telegram import Update, BotCommand from telegram.constants import ParseMode from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-# Configuração do log
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
+Configuração do log
 
-TOKEN = "7578757304:AAGGvhz7cSkpga36bgfy7COrUD8PRrzorKw"
-DATA_FILE = 'userdata.json'
-COOLDOWN_TIME = 600  # 10 minutos
-ADMIN_IDS = [6063904865]  # seu user_id admin
+logging.basicConfig( format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO )
 
-trophy_emojis = ["🥇", "🥈", "🥉"]
+TOKEN = "7578757304:AAGGvhz7cSkpga36bgfy7COrUD8PRrzorKw" DATA_FILE = 'userdata.json' COOLDOWN_TIME = 600  # 10 minutos ADMIN_IDS = [6063904865]  # seu user_id admin
 
-# Utilitários
-def load_data():
-    try:
-        with open(DATA_FILE, 'r') as f:
-            return json.load(f)
-    except FileNotFoundError:
-        with open(DATA_FILE, 'w') as f:
-            json.dump({}, f)
-        return {}
-    except Exception as e:
-        print(f"[ERRO] Falha ao carregar dados: {e}")
-        return {}
+VIP_PLANOS = { 0: {"multiplicador": 1, "dias": 0, "preco": 0, "saque_diario": 0}, 1: {"multiplicador": 3, "dias": 3, "preco": 2.99, "saque_diario": 0.10}, 2: {"multiplicador": 6, "dias": 7, "preco": 5.99, "saque_diario": 0.50}, 3: {"multiplicador": 12, "dias": 15, "preco": 10.99, "saque_diario": 1.20}, 4: {"multiplicador": 24, "dias": 30, "preco": 18.99, "saque_diario": 2.80}, 5: {"multiplicador": 48, "dias": 60, "preco": 29.99, "saque_diario": 5.99}, 6: {"multiplicador": 96, "dias": 90, "preco": 49.99, "saque_diario": 10.00}, 7: {"multiplicador": 192, "dias": 180, "preco": 79.99, "saque_diario": 25.00}, 8: {"multiplicador": 384, "dias": 270, "preco": 129.99, "saque_diario": 50.00}, 9: {"multiplicador": 768, "dias": 360, "preco": 199.99, "saque_diario": 100.00}, 10: {"multiplicador": 1536, "dias": 999, "preco": 349.99, "saque_diario": 200.00}, }
 
-def save_data(data):
-    try:
-        with open(DATA_FILE, 'w') as f:
-            json.dump(data, f)
-    except Exception as e:
-        print(f"[ERRO] Falha ao salvar dados: {e}")
+COMISSAO_POR_INDICACAO = 0.10  # 10%
 
-def init_player(user_id, username=None):
-    data = load_data()
-    if str(user_id) not in data:
-        data[str(user_id)] = {
-            'coins': 0,
-            'last_mine': 0,
-            'xp': 0,
-            'level': 1,
-            'invited_by': None,
-            'invites': 0,
-            'username': username or ""
-        }
-    else:
-        if username:
-            data[str(user_id)]['username'] = username
-    save_data(data)
+trophy_emojis = ["\U0001F947", "\U0001F948", "\U0001F949"]
 
-# Comandos principais
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    username = update.effective_user.username or ""
-    init_player(user_id, username)
+Utils
 
-    data = load_data()
-    args = context.args
+def load_data(): try: with open(DATA_FILE, 'r') as f: return json.load(f) except FileNotFoundError: with open(DATA_FILE, 'w') as f: json.dump({}, f) return {} except Exception as e: print(f"[ERRO] Falha ao carregar dados: {e}") return {}
 
-    if args:
-        indic_code = args[0].replace("@", "").lower()
-        if indic_code != username.lower():
-            indicante_id = None
-            for uid, info in data.items():
-                if info.get('username', "").lower() == indic_code:
-                    indicante_id = int(uid)
-                    break
-            if indicante_id and data[str(user_id)].get('invited_by') is None:
-                data[str(user_id)]['invited_by'] = indicante_id
-                data[str(indicante_id)]['coins'] += 20
-                data[str(indicante_id)]['xp'] += 10
-                data[str(indicante_id)]['invites'] += 1
-                save_data(data)
-                await update.message.reply_text(
-                    f"🎉 Você foi indicado por @{data[str(indicante_id)]['username']}! Eles ganharam 20 ZPC e 10 XP.\n\n"
-                    "👋 Bem-vindo ao *Crypto Miner Bot*!\nUse /minerar para minerar ZappCoins ⛏️",
-                    parse_mode=ParseMode.MARKDOWN
-                )
-                return
-            else:
-                await update.message.reply_text("Código inválido ou você já foi indicado antes.")
-                return
-        else:
-            await update.message.reply_text("Você não pode se indicar.")
-            return
+def save_data(data): try: with open(DATA_FILE, 'w') as f: json.dump(data, f) except Exception as e: print(f"[ERRO] Falha ao salvar dados: {e}")
 
-    await update.message.reply_text(
-        """👋 Bem-vindo ao *Crypto Miner Bot*!
+def init_player(user_id, username=None): data = load_data() if str(user_id) not in data: data[str(user_id)] = { 'coins': 0, 'last_mine': 0, 'xp': 0, 'level': 1, 'invited_by': None, 'invites': 0, 'username': username or "", 'vip': 0, 'vip_start': 0, 'saldo_saque': 0.0, 'total_recebido': 0.0, 'comissao': 0.0 } else: if username: data[str(user_id)]['username'] = username save_data(data)
 
-Use /minerar para minerar ZappCoins ⛏️
-Use /perfil para ver seu progresso 💼
-Use /comprar para adquirir mais moedas 💰""",
-        parse_mode=ParseMode.MARKDOWN
-    )
+Comandos novos de VIP e Rendimento
 
-async def mine(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    init_player(user_id, update.effective_user.username)
-    data = load_data()
-    player = data[str(user_id)]
+async def comprarvip(update: Update, context: ContextTypes.DEFAULT_TYPE): mensagem = "\n\n\U0001F4B8 Planos VIP Disponíveis:\n" for nivel, plano in VIP_PLANOS.items(): if nivel == 0: continue mensagem += ( f"\n\U0001F451 VIP {nivel} — {plano['dias']} dias\n" f"Multiplicador de mineração: x{plano['multiplicador']}\n" f"Saque diário: R$ {plano['saque_diario']:.2f}\n" f"Preço: R$ {plano['preco']:.2f}\n" ) mensagem += ("\nPara ativar, envie o valor via PIX: 5204f881-cbb8-4388-ac89-2eabeb390f58\n" "Após o pagamento, envie o comprovante aqui mesmo para ativação manual.") await update.message.reply_text(mensagem, parse_mode=ParseMode.MARKDOWN)
 
-    now = time.time()
-    elapsed = now - player['last_mine']
+async def vipstatus(update: Update, context: ContextTypes.DEFAULT_TYPE): user_id = str(update.effective_user.id) data = load_data() p = data.get(user_id) if not p: await update.message.reply_text("Usuário não encontrado.") return
 
-    if elapsed < COOLDOWN_TIME:
-        wait = int(COOLDOWN_TIME - elapsed)
-        await update.message.reply_text(f"⏳ Aguarde {wait} segundos para minerar novamente.")
-        return
+vip = p.get('vip', 0)
+start = p.get('vip_start', 0)
+dias = VIP_PLANOS[vip]['dias']
+restante = max(0, int((start + dias * 86400 - time.time()) / 86400)) if vip > 0 else 0
 
-    coins_earned = 10 + player['level'] * 2
-    player['coins'] += coins_earned
-    player['last_mine'] = now
-    player['xp'] += 5
+msg = f"\U0001F451 Seu VIP atual é: VIP {vip}\n"
+msg += f"⏳ Dias restantes: {restante} dia(s)\n"
+msg += f"\U0001F4B0 Saque diário: R$ {VIP_PLANOS[vip]['saque_diario']:.2f}\n"
+msg += f"\nSaldo disponível para saque: R$ {p.get('saldo_saque', 0.0):.2f}"
+await update.message.reply_text(msg)
 
-    if player['xp'] >= player['level'] * 20:
-        player['level'] += 1
-        player['xp'] = 0
-        await update.message.reply_text(f"🚀 Parabéns! Você subiu para o nível {player['level']}!")
+async def alimentar(update: Update, context: ContextTypes.DEFAULT_TYPE): user_id = str(update.effective_user.id) data = load_data() p = data.get(user_id) if not p: await update.message.reply_text("Usuário não encontrado.") return
 
-    save_data(data)
-    await update.message.reply_text(f"⛏️ Você minerou {coins_earned} ZappCoins!")
+vip = p.get('vip', 0)
+if vip == 0:
+    await update.message.reply_text("Você precisa ser VIP para gerar rendimento.")
+    return
 
-async def perfil(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    init_player(user_id, update.effective_user.username)
-    data = load_data()
-    player = data[str(user_id)]
+ultimo = p.get('last_rendimento', 0)
+if time.time() - ultimo < 86400:
+    await update.message.reply_text("⏳ Você já recebeu seu rendimento hoje. Tente amanhã.")
+    return
 
-    msg = (
-        f"👤 Perfil de {update.effective_user.first_name}:\n\n"
-        f"💰 ZappCoins: {player['coins']}\n"
-        f"⭐ Nível: {player['level']}\n"
-        f"✨ XP: {player['xp']}/{player['level'] * 20}\n"
-        f"🎮 Convites: {player['invites']}"
-    )
-    await update.message.reply_text(msg)
+p['saldo_saque'] += VIP_PLANOS[vip]['saque_diario']
+p['last_rendimento'] = time.time()
+save_data(data)
+await update.message.reply_text(f"✅ Rendimento diário adicionado: R$ {VIP_PLANOS[vip]['saque_diario']:.2f}")
 
-async def comprar(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = (
-        "💰 Comprar ZappCoins\n"
-        "Escolha um dos pacotes abaixo e envie o valor para a chave PIX:\n"
-        "🔹 500 ZPC – R$2,99\n"
-        "🔸 1000 ZPC – R$4,99\n"
-        "💎 2500 ZPC – R$9,99\n"
-        "🔑 Chave PIX (aleatória): 5204f881-cbb8-4388-ac89-2eabeb390f58\n"
-        "📤 Após o pagamento, envie o comprovante aqui mesmo no chat.\n"
-        "⚠️ Assim que confirmado, você receberá as moedas manualmente!"
-    )
-    await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
+async def sacar(update: Update, context: ContextTypes.DEFAULT_TYPE): user_id = str(update.effective_user.id) data = load_data() p = data.get(user_id) saldo = p.get('saldo_saque', 0.0)
 
-# Comandos novos
+if saldo < 0.50:
+    await update.message.reply_text("O saque mínimo é de R$ 0,50. Junte mais rendimento.")
+    return
 
-async def ranking(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    data = load_data()
-    sorted_players = sorted(data.items(), key=lambda x: x[1].get('coins', 0), reverse=True)
-    top_10 = sorted_players[:10]
+await update.message.reply_text(f"Para sacar R$ {saldo:.2f}, envie sua chave PIX aqui no chat. Após isso, o pagamento será feito manualmente!")
 
-    position = None
-    for idx, (uid, _) in enumerate(sorted_players, start=1):
-        if int(uid) == user_id:
-            position = idx
-            break
+async def minhascomissoes(update: Update, context: ContextTypes.DEFAULT_TYPE): user_id = str(update.effective_user.id) data = load_data() comissao = data[user_id].get('comissao', 0.0) await update.message.reply_text(f"💼 Sua comissão acumulada por indicações: R$ {comissao:.2f}")
 
-    msg = "🏆 *Ranking Global ZappCoins* 🏆\n\n"
-    for idx, (uid, info) in enumerate(top_10, start=1):
-        emoji = trophy_emojis[idx - 1] if idx <= 3 else f"{idx}."
-        username = info.get('username', f"User{uid}")
-        coins = info.get('coins', 0)
-        msg += f"{emoji} @{username} — {coins} ZPC\n"
+main()
 
-    if position and position > 10:
-        user_info = data.get(str(user_id), {})
-        msg += f"\nSua posição: {position} — @{user_info.get('username', '')} — {user_info.get('coins', 0)} ZPC"
+async def main(): application = ApplicationBuilder().token(TOKEN).build()
 
-    await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
+application.add_handler(CommandHandler("comprarvip", comprarvip))
+application.add_handler(CommandHandler("vipstatus", vipstatus))
+application.add_handler(CommandHandler("alimentar", alimentar))
+application.add_handler(CommandHandler("sacar", sacar))
+application.add_handler(CommandHandler("minhascomissoes", minhascomissoes))
 
-async def indicar(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    username = update.effective_user.username or ""
-    data = load_data()
+# (comandos anteriores continuam)
 
-    if not context.args:
-        await update.message.reply_text("Use: /indicar @username")
-        return
+await application.bot.set_my_commands([
+    BotCommand("start", "Iniciar o bot"),
+    BotCommand("minerar", "Minerar ZappCoins"),
+    BotCommand("perfil", "Ver seu perfil"),
+    BotCommand("comprarvip", "Ver planos VIP"),
+    BotCommand("vipstatus", "Seu VIP e rendimento"),
+    BotCommand("alimentar", "Coletar rendimento diário"),
+    BotCommand("sacar", "Solicitar saque"),
+    BotCommand("indicar", "Indicar outro jogador"),
+    BotCommand("minhascomissoes", "Ver comissões"),
+    BotCommand("ranking", "Ver ranking global"),
+    BotCommand("liberar", "Adicionar ZPC a jogador (admin)"),
+    BotCommand("reset", "Resetar jogador (admin)"),
+    BotCommand("broadcast", "Mensagem global (admin)"),
+    BotCommand("estatisticas", "Dados do bot (admin)"),
+])
+await application.run_polling()
 
-    indic_username = context.args[0].replace("@", "").lower()
-    if indic_username == username.lower():
-        await update.message.reply_text("Você não pode se indicar.")
-        return
+if name == "main": try: loop = asyncio.get_event_loop() loop.run_until_complete(main()) except RuntimeError: asyncio.create_task(main()) while True: time.sleep(1) except Exception as e: print(f"Erro inesperado: {e}")
 
-    indic_id = None
-    for uid, info in data.items():
-        if info.get('username', "").lower() == indic_username:
-            indic_id = int(uid)
-            break
-
-    if indic_id is None:
-        await update.message.reply_text("Usuário não encontrado.")
-        return
-
-    if data.get(str(indic_id), {}).get('invited_by') is not None:
-        await update.message.reply_text("Esse usuário já foi indicado.")
-        return
-
-    data[str(indic_id)]['invited_by'] = user_id
-    data[str(user_id)]['coins'] += 20
-    data[str(user_id)]['xp'] += 10
-    data[str(user_id)]['invites'] += 1
-    save_data(data)
-    await update.message.reply_text(f"Você indicou @{indic_username}! 🎉 Você ganhou 20 ZPC e 10 XP.")
-
-async def liberar(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id not in ADMIN_IDS:
-        await update.message.reply_text("Acesso negado.")
-        return
-
-    if len(context.args) < 2:
-        await update.message.reply_text("Uso: /liberar @usuario quantidade")
-        return
-
-    username = context.args[0].replace("@", "").lower()
-    try:
-        amount = int(context.args[1])
-    except ValueError:
-        await update.message.reply_text("Quantidade inválida.")
-        return
-
-    data = load_data()
-
-    for uid, info in data.items():
-        if info.get('username', "").lower() == username:
-            data[uid]['coins'] += amount
-            save_data(data)
-            await update.message.reply_text(f"✅ Liberados {amount} ZPC para @{username}.")
-            return
-
-    await update.message.reply_text("Usuário não encontrado.")
-
-async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id not in ADMIN_IDS:
-        await update.message.reply_text("Acesso negado.")
-        return
-
-    if not context.args:
-        await update.message.reply_text("Uso: /reset @usuario")
-        return
-
-    username = context.args[0].replace("@", "").lower()
-    data = load_data()
-
-    for uid, info in data.items():
-        if info.get('username', "").lower() == username:
-            data[uid] = {
-                'coins': 0,
-                'last_mine': 0,
-                'xp': 0,
-                'level': 1,
-                'invited_by': None,
-                'invites': 0,
-                'username': info.get('username', "")
-            }
-            save_data(data)
-            await update.message.reply_text(f"✅ Dados do @{username} foram resetados.")
-            return
-
-    await update.message.reply_text("Usuário não encontrado.")
-
-async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id not in ADMIN_IDS:
-        await update.message.reply_text("Acesso negado.")
-        return
-
-    if not context.args:
-        await update.message.reply_text("Uso: /broadcast mensagem")
-        return
-
-    mensagem = " ".join(context.args)
-    data = load_data()
-
-    count = 0
-    for uid in data.keys():
-        try:
-            await context.bot.send_message(chat_id=int(uid), text=mensagem)
-            count += 1
-        except:
-            continue
-
-    await update.message.reply_text(f"✅ Broadcast enviado para {count} usuários.")
-
-async def estatisticas(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id not in ADMIN_IDS:
-        await update.message.reply_text("Acesso negado.")
-        return
-
-    data = load_data()
-    total_users = len(data)
-    total_coins = sum(info.get('coins', 0) for info in data.values())
-    total_xp = sum(info.get('xp', 0) for info in data.values())
-
-    msg = (
-        "*Estatísticas do Bot*\n\n"
-        f"Usuários: {total_users}\n"
-        f"Total de ZappCoins: {total_coins}\n"
-        f"Total de XP: {total_xp}"
-    )
-    await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
-
-# Inicialização do bot
-async def main():
-    application = ApplicationBuilder().token(TOKEN).build()
-
-    # Registra handlers
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("minerar", mine))
-    application.add_handler(CommandHandler("perfil", perfil))
-    application.add_handler(CommandHandler("comprar", comprar))
-    application.add_handler(CommandHandler("ranking", ranking))
-    application.add_handler(CommandHandler("indicar", indicar))
-    application.add_handler(CommandHandler("reset", reset))
-    application.add_handler(CommandHandler("broadcast", broadcast))
-    application.add_handler(CommandHandler("estatisticas", estatisticas))
-    application.add_handler(CommandHandler("liberar", liberar))  # admin
-
-    # Comandos visíveis no menu do Telegram
-    await application.bot.set_my_commands([
-        BotCommand("start", "Iniciar o bot"),
-        BotCommand("minerar", "Minerar ZappCoins"),
-        BotCommand("perfil", "Ver seu perfil"),
-        BotCommand("comprar", "Comprar ZappCoins"),
-        BotCommand("ranking", "Ver ranking dos jogadores"),
-        BotCommand("indicar", "Indicar outro jogador"),
-        BotCommand("reset", "Resetar jogador (admin)"),
-        BotCommand("broadcast", "Mensagem global (admin)"),
-        BotCommand("estatisticas", "Dados gerais do bot"),
-        BotCommand("liberar", "Adicionar ZPC a um jogador (admin)"),
-    ])
-
-    # Inicia o bot com polling
-    await application.run_polling()
-
-import asyncio
-import time
-
-if __name__ == "__main__":
-    try:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(main())
-    except RuntimeError:
-        # Se já existir loop rodando (como no Replit), cria a task sem travar
-        asyncio.create_task(main())
-        print("⚠️ Rodando main() via create_task() devido a loop já ativo.")
-        # Mantém o script vivo para o bot não parar
-        while True:
-            time.sleep(1)
-    except Exception as e:
-        print(f"Erro inesperado: {e}")
