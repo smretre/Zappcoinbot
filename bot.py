@@ -21,12 +21,21 @@ def load_data():
     try:
         with open(DATA_FILE, 'r') as f:
             return json.load(f)
-    except:
+    except FileNotFoundError:
+        print("[INFO] Criando arquivo userdata.json...")
+        with open(DATA_FILE, 'w') as f:
+            json.dump({}, f)
+        return {}
+    except Exception as e:
+        print(f"[ERRO] Falha ao carregar dados: {e}")
         return {}
 
 def save_data(data):
-    with open(DATA_FILE, 'w') as f:
-        json.dump(data, f)
+    try:
+        with open(DATA_FILE, 'w') as f:
+            json.dump(data, f)
+    except Exception as e:
+        print(f"[ERRO] Falha ao salvar dados: {e}")
 
 def init_player(user_id, username=None):
     data = load_data()
