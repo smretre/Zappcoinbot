@@ -204,20 +204,36 @@ msg = (
 \n" f"Usuários: {total_users}\n" f"Total de ZappCoins: {total_coins}\n" f"Total de XP: {total_xp}" ) await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
 
 Inicialização
+from telegram import BotCommand
 
-async def main(): application = ApplicationBuilder().token(TOKEN).build()
+async def main():
+    application = ApplicationBuilder().token("7578757304:AAGGvhz7cSkpga36bgfy7COrUD8PRrzorKw").build()
 
-application.add_handler(CommandHandler("start", start))
-application.add_handler(CommandHandler("minerar", mine))
-application.add_handler(CommandHandler("perfil", perfil))
-application.add_handler(CommandHandler("comprar", comprar))
-application.add_handler(CommandHandler("ranking", ranking))
-application.add_handler(CommandHandler("indicar", indicar))
-application.add_handler(CommandHandler("reset", reset))
-application.add_handler(CommandHandler("broadcast", broadcast))
-application.add_handler(CommandHandler("estatisticas", estatisticas))
+    # Comandos
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("minerar", mine))
+    application.add_handler(CommandHandler("perfil", perfil))
+    application.add_handler(CommandHandler("comprar", comprar))
+    application.add_handler(CommandHandler("ranking", ranking))
+    application.add_handler(CommandHandler("indicar", indicar))
+    application.add_handler(CommandHandler("reset", reset))
+    application.add_handler(CommandHandler("broadcast", broadcast))
+    application.add_handler(CommandHandler("estatisticas", estatisticas))
 
-await application.run_polling()
+    # 👇 Registrar comandos com o Telegram
+    await application.bot.set_my_commands([
+        BotCommand("start", "Iniciar o bot"),
+        BotCommand("minerar", "Minerar ZappCoins"),
+        BotCommand("perfil", "Ver seu perfil"),
+        BotCommand("comprar", "Comprar ZappCoins"),
+        BotCommand("ranking", "Ranking dos jogadores"),
+        BotCommand("indicar", "Indicar outro jogador"),
+        BotCommand("reset", "Resetar jogador (admin)"),
+        BotCommand("broadcast", "Enviar mensagem a todos (admin)"),
+        BotCommand("estatisticas", "Ver estatísticas do bot"),
+    ])
+
+    await application.run_polling()
 
 if name == "main": asyncio.run(main())
 
