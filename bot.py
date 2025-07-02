@@ -348,5 +348,14 @@ async def main():
     # Inicia o bot com polling
     await application.run_polling()
 
+import asyncio
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(main())
+    except RuntimeError:
+        # Se já houver um loop rodando (caso comum no Replit), usa outro jeito
+        asyncio.run(main())
+    except Exception as e:
+        print(f"Erro ao iniciar o bot: {e}")
