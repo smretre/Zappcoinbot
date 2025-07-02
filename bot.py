@@ -349,13 +349,18 @@ async def main():
     await application.run_polling()
 
 import asyncio
+import time
 
 if __name__ == "__main__":
     try:
         loop = asyncio.get_event_loop()
         loop.run_until_complete(main())
     except RuntimeError:
-        # Se já houver um loop rodando (caso comum no Replit), usa outro jeito
-        asyncio.run(main())
+        # Se já existir loop rodando (como no Replit), cria a task sem travar
+        asyncio.create_task(main())
+        print("⚠️ Rodando main() via create_task() devido a loop já ativo.")
+        # Mantém o script vivo para o bot não parar
+        while True:
+            time.sleep(1)
     except Exception as e:
-        print(f"Erro ao iniciar o bot: {e}")
+        print(f"Erro inesperado: {e}")
