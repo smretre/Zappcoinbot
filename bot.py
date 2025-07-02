@@ -11,7 +11,7 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-BOT_TOKEN = 'SEU_TOKEN_AQUI'  # Substitua pelo seu token do BotFather
+BOT_TOKEN = '7578757304:AAGGvhz7cSkpga36bgfy7COrUD8PRrzorKw'  # Substitua pelo seu token do BotFather
 
 DATA_FILE = 'userdata.json'
 COOLDOWN_TIME = 600  # 10 minutos
