@@ -152,11 +152,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Olá! Seu bot está funcionando!")
 
 async def main():
-    application = ApplicationBuilder().token(TOKEN).build()
+    application = ApplicationBuilder().token("7578757304:AAGGvhz7cSkpga36bgfy7COrUD8PRrzorKw").build()
+
+    # Comando /start
     application.add_handler(CommandHandler("start", start))
-    
-    # ESSA É A PARTE IMPORTANTE
-    await application.run_polling()  # Mantém o bot rodando
+
+    # ESSA LINHA mantém o bot rodando!
+    await application.run_polling()
 
 if __name__ == "__main__":
     asyncio.run(main())
