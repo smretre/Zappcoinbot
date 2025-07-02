@@ -207,9 +207,9 @@ Inicialização
 from telegram import BotCommand
 
 async def main():
-    application = ApplicationBuilder().token("7578757304:AAGGvhz7cSkpga36bgfy7COrUD8PRrzorKw").build()
+    application = ApplicationBuilder().token(TOKEN).build()
 
-    # Comandos
+    # Registra todos os handlers de comando
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("minerar", mine))
     application.add_handler(CommandHandler("perfil", perfil))
@@ -219,21 +219,26 @@ async def main():
     application.add_handler(CommandHandler("reset", reset))
     application.add_handler(CommandHandler("broadcast", broadcast))
     application.add_handler(CommandHandler("estatisticas", estatisticas))
+    application.add_handler(CommandHandler("liberar", liberar))  # admin libera moedas
 
-    # 👇 Registrar comandos com o Telegram
+    # Define os comandos visíveis no menu do Telegram
     await application.bot.set_my_commands([
         BotCommand("start", "Iniciar o bot"),
         BotCommand("minerar", "Minerar ZappCoins"),
         BotCommand("perfil", "Ver seu perfil"),
         BotCommand("comprar", "Comprar ZappCoins"),
-        BotCommand("ranking", "Ranking dos jogadores"),
+        BotCommand("ranking", "Ver ranking dos jogadores"),
         BotCommand("indicar", "Indicar outro jogador"),
         BotCommand("reset", "Resetar jogador (admin)"),
-        BotCommand("broadcast", "Enviar mensagem a todos (admin)"),
-        BotCommand("estatisticas", "Ver estatísticas do bot"),
+        BotCommand("broadcast", "Mensagem global (admin)"),
+        BotCommand("estatisticas", "Dados gerais do bot"),
+        BotCommand("liberar", "Adicionar ZPC a um jogador (admin)"),
     ])
 
-    await application.run_polling()
+    # Inicia o bot com polling
+await application.run_polling()
 
-if name == "main": asyncio.run(main())
-
+# Executa o main() se estiver rodando direto
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())
