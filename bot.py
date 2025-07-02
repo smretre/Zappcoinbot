@@ -50,14 +50,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     init_player(user_id, update.effective_user.username)
     await update.message.reply_text(
-        "👋 Bem-vindo ao *Crypto Miner Bot*!
+        """👋 Bem-vindo ao *Crypto Miner Bot*!
 
 "
         "Use /minerar para minerar ZappCoins ⛏️
 "
         "Use /perfil para ver seu progresso 💼
 "
-        "Use /comprar para adquirir mais moedas 💰",
+        "Use /comprar para adquirir mais moedas 💰""",
         parse_mode=ParseMode.MARKDOWN
     )
 
