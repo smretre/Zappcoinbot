@@ -1,28 +1,30 @@
-
 import logging
 import time
 import json
+import asyncio
+import os
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
+# Configuração do log
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 
-BOT_TOKEN = '7578757304:AAGGvhz7cSkpga36bgfy7COrUD8PRrzorKw'  # Substitua pelo seu token do BotFather
+# Token do bot (pegando da variável de ambiente)
+TOKEN = os.getenv("7578757304:AAGGvhz7cSkpga36bgfy7COrUD8PRrzorKw")
 
 DATA_FILE = 'userdata.json'
 COOLDOWN_TIME = 600  # 10 minutos
 
-# ----- Utilitários -----
+# Utilitários
 def load_data():
     try:
         with open(DATA_FILE, 'r') as f:
             return json.load(f)
     except FileNotFoundError:
-        print("[INFO] Criando arquivo userdata.json...")
         with open(DATA_FILE, 'w') as f:
             json.dump({}, f)
         return {}
@@ -54,17 +56,17 @@ def init_player(user_id, username=None):
             data[str(user_id)]['username'] = username
     save_data(data)
 
-# ----- Comandos -----
+# Comandos
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     init_player(user_id, update.effective_user.username)
     await update.message.reply_text(
-    """👋 Bem-vindo ao *Crypto Miner Bot*!
+        """👋 Bem-vindo ao *Crypto Miner Bot*!
 
 Use /minerar para minerar ZappCoins ⛏️
 Use /perfil para ver seu progresso 💼
 Use /comprar para adquirir mais moedas 💰""",
-    parse_mode=ParseMode.MARKDOWN
+        parse_mode=ParseMode.MARKDOWN
     )
 
 async def mine(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -122,6 +124,7 @@ async def comprar(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "⚠️ Assim que confirmado, você receberá as moedas manualmente!"
     )
     await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
+
 async def liberar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args or len(context.args) < 2:
         await update.message.reply_text("Uso: /liberar @usuario quantidade")
@@ -140,24 +143,16 @@ async def liberar(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(f"❌ Usuário @{username} não encontrado no banco de dados.")
 
-# ----- Main -----
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-import asyncio
-import os
-
-TOKEN = os.getenv("TOKEN")
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Olá! Seu bot está funcionando!")
-
+# ----- Inicialização do bot -----
 async def main():
     application = ApplicationBuilder().token("7578757304:AAGGvhz7cSkpga36bgfy7COrUD8PRrzorKw").build()
 
-    # Comando /start
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("minerar", mine))
+    application.add_handler(CommandHandler("perfil", perfil))
+    application.add_handler(CommandHandler("comprar", comprar))
+    application.add_handler(CommandHandler("liberar", liberar))
 
-    # ESSA LINHA mantém o bot rodando!
     await application.run_polling()
 
 if __name__ == "__main__":
