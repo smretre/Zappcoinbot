@@ -388,14 +388,14 @@ async def perfil(update: Update, context: ContextTypes.DEFAULT_TYPE):
     vip = VIP_TIERS.get(player.get("vip", 0), {})
     dias = vip_remaining_days(player)
     await update.message.reply_text(
-        f"👤 Perfil.\n"
-f"ZPC: {player.get('coins', 0)}\n"
-f"Nível: {player.get('level', 1)}\n"
-f"XP: {player.get('xp', 0)}\n"
-"
-        f"VIP: {vip.get('name')} ({dias} dias restantes)
-Lucro: R${player.get('profit', 0.0):.2f}"
-    )
+        await update.message.reply_text(
+    f"👤 Perfil.\n"
+    f"ZPC: {player.get('coins', 0)}\n"
+    f"Nível: {player.get('level', 1)}\n"
+    f"XP: {player.get('xp', 0)}\n"
+    f"VIP: {vip.get('name')} ({dias} dias restantes)\n"
+    f"Lucro: R${player.get('profit', 0.0):.2f}"
+)
 
 # Novos comandos VIP
 async def comprarvip(update: Update, context: ContextTypes.DEFAULT_TYPE):
