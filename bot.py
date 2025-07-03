@@ -83,8 +83,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = update.effective_user.id
     username = update.effective_user.username or ""
     init_player(uid, username)
-    await update.message.reply_text("👋 Bem-vindo ao Crypto Miner Bot!
-Use /minerar para começar.")
+    await update.message.reply_text("""👋 Bem-vindo ao Crypto Miner Bot!
+Use /minerar para começar.""")
 
 async def mine(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = str(update.effective_user.id)
