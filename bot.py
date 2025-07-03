@@ -264,6 +264,7 @@ async def main():
     app.add_handler(CommandHandler("ranking", ranking))
     app.add_handler(CommandHandler("indicar", indicar))
     app.add_handler(CommandHandler("liberar", liberar))
+    app.add_handler(CommandHandler("comprarvipnivel", comprarvipnivel))
 
     comandos = [
         BotCommand("start", "Iniciar"),
@@ -277,7 +278,8 @@ async def main():
         BotCommand("minhascomissoes", "Ver comissões"),
         BotCommand("ranking", "Ranking global"),
         BotCommand("indicar", "Indicar amigo"),
-        BotCommand("liberar", "Liberar ZPC (admin)")
+        BotCommand("liberar", "Liberar ZPC (admin)"),
+        BotCommand("comprarvipnivel", "Comprar VIP com pagamento PIX")
     ]
 import logging
 import time
@@ -410,15 +412,23 @@ async def perfil(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
 
 # Novos comandos VIP
-async def comprarvip(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    msg = "💎 *Planos VIP:*\n"
-    for i in VIP_TIERS:
-        if i == 0:
-            continue
-        tier = VIP_TIERS[i]
-        msg += f"{tier['name']} - R${tier['price']} - {tier['days']} dias - R${tier['withdraw']}/dia\n"
-    await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
+async def comprarvipnivel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.args:
+        return await update.message.reply_text("Uso: /comprarvipnivel <nível>")
+    nivel = int(context.args[0])
+    if nivel not in VIP_TIERS:
+        return await update.message.reply_text("Plano inválido.")
 
+    tier = VIP_TIERS[nivel]
+    msg = (
+        f"💎 *Compra do {tier['name']}*\n"
+        f"🔹 Preço: R${tier['price']}\n"
+        f"🔑 Chave PIX para pagamento:\n`{5204f881-cbb8-4388-ac89-2eabeb390f58}`\n\n"
+        "Após o pagamento, envie o comprovante ao administrador.\n"
+        "Quando confirmado, use /ativarvip <nível> para ativar seu plano."
+    )
+    await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
+    
 async def ativarvip(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = str(update.effective_user.id)
     data = load_data()
@@ -456,13 +466,26 @@ async def sacar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = str(update.effective_user.id)
     data = load_data()
     player = data[uid]
+
     if player["profit"] < 10:
         return await update.message.reply_text("Valor mínimo para saque: R$10")
+
+    if not context.args:
+        return await update.message.reply_text("Por favor, envie sua chave PIX junto. Exemplo:\n/sacar SUA_CHAVE_PIX")
+
+    chave_pix_usuario = " ".join(context.args)
+
     valor = player["profit"]
     player["profit"] = 0
     player["total_sacado"] += valor
     save_data(data)
-    await update.message.reply_text(f"✅ Pedido de saque de R${valor:.2f} registrado.")
+
+    await update.message.reply_text(
+        f"✅ Pedido de saque registrado.\n"
+        f"💰 Valor: R${valor:.2f}\n"
+        f"🔑 Chave PIX: {chave_pix_usuario}\n"
+        f"Seu pagamento será processado em breve."
+    )
 
 async def minhascomissoes(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = str(update.effective_user.id)
@@ -536,6 +559,7 @@ async def main():
     app.add_handler(CommandHandler("ranking", ranking))
     app.add_handler(CommandHandler("indicar", indicar))
     app.add_handler(CommandHandler("liberar", liberar))
+    app.add_handler(CommandHandler("comprarvipnivel", comprarvipnivel))
 
     comandos = [
         BotCommand("start", "Iniciar"),
@@ -549,7 +573,8 @@ async def main():
         BotCommand("minhascomissoes", "Ver comissões"),
         BotCommand("ranking", "Ranking global"),
         BotCommand("indicar", "Indicar amigo"),
-        BotCommand("liberar", "Liberar ZPC (admin)")
+        BotCommand("liberar", "Liberar ZPC (admin)"),
+        BotCommand("comprarvipnivel", "Comprar VIP com pagamento PIX")
     ]
     await app.bot.set_my_commands(comandos)
     await app.run_polling()
