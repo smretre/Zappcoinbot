@@ -439,7 +439,7 @@ async def comprarvipnivel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 )
     await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
     
- async def ativarvipadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def ativarvipadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in ADMIN_IDS:
         return await update.message.reply_text("Acesso negado.")
 
