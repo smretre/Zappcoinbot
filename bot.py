@@ -465,6 +465,7 @@ async def alimentar(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def sacar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = str(update.effective_user.id)
+    init_player(uid)
     data = load_data()
     player = data[uid]
 
