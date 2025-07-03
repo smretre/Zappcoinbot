@@ -545,24 +545,6 @@ async def main():
     ]
     await app.bot.set_my_commands(comandos)
     await app.run_polling()
-
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except RuntimeError:
-        loop = asyncio.get_event_loop()
-        loop.create_task(main())
-        while True:
-            time.sleep(1)
-
-    await app.bot.set_my_commands(comandos)
-    await app.run_polling()
-
-if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except RuntimeError:
-        loop = asyncio.get_event_loop()
-        loop.create_task(main())
-        while True:
-            time.sleep(1)
+    import asyncio
+    asyncio.run(main())
