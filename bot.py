@@ -149,25 +149,31 @@ async def comprarvip(update: Update, context: ContextTypes.DEFAULT_TYPE):
         msg += f"{tier['name']} - R${tier['price']} - {tier['days']} dias - R${tier['withdraw']}/dia\n"
     await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
 
-async def ativarvip(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    uid = str(update.effective_user.id)
-    data = load_data()
-    player = data[uid]
-    if not context.args:
-        await update.message.reply_text("Uso: /ativarvip <nível>")
-        return
-    nivel = int(context.args[0])
-    if nivel not in VIP_TIERS:
-        return await update.message.reply_text("Plano inválido.")
-    custo = VIP_TIERS[nivel]["price"]
-    if player["coins"] < custo:
-        return await update.message.reply_text("ZPC insuficiente.")
-    player["coins"] -= custo
-    player["vip"] = nivel
-    player["vip_start"] = time.time()
-    save_data(data)
-    await update.message.reply_text(f"VIP {nivel} ativado com sucesso!")
+async def ativarvipadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id not in ADMIN_IDS:
+        return await update.message.reply_text("Acesso negado.")
+    
+    if len(context.args) != 2:
+        return await update.message.reply_text("Uso: /ativarvipadmin @usuario <nível>")
+    
+    nome = context.args[0].replace("@", "").lower()
+    nivel = int(context.args[1])
 
+    if nivel not in VIP_TIERS:
+        return await update.message.reply_text("Nível VIP inválido.")
+    
+    data = load_data()
+    for uid, player in data.items():
+        if player.get("username", "").lower() == nome:
+            player["vip"] = nivel
+            player["vip_start"] = time.time()
+            save_data(data)
+            return await update.message.reply_text(
+                f"✅ VIP {nivel} ativado para @{nome}"
+            )
+    
+    await update.message.reply_text("Usuário não encontrado.")
+    
 async def alimentar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = str(update.effective_user.id)
     data = load_data()
@@ -259,7 +265,7 @@ async def main():
     app.add_handler(CommandHandler("minerar", mine))
     app.add_handler(CommandHandler("perfil", perfil))
     app.add_handler(CommandHandler("comprarvip", comprarvip))
-    app.add_handler(CommandHandler("ativarvip", ativarvip))
+    app.add_handler(CommandHandler("ativarvipadmin", ativarvipadmin))
     app.add_handler(CommandHandler("vipstatus", perfil))
     app.add_handler(CommandHandler("alimentar", alimentar))
     app.add_handler(CommandHandler("sacar", sacar))
@@ -274,7 +280,7 @@ async def main():
         BotCommand("minerar", "Minerar ZPC"),
         BotCommand("perfil", "Seu perfil"),
         BotCommand("comprarvip", "Ver planos VIP"),
-        BotCommand("ativarvip", "Ativar VIP"),
+        BotCommand("ativarvipadmin", "Ativar VIP"),
         BotCommand("vipstatus", "Status VIP"),
         BotCommand("alimentar", "Coletar rendimento diário"),
         BotCommand("sacar", "Solicitar saque"),
@@ -432,25 +438,31 @@ async def comprarvipnivel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 )
     await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
     
-async def ativarvip(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    uid = str(update.effective_user.id)
-    data = load_data()
-    player = data[uid]
-    if not context.args:
-        await update.message.reply_text("Uso: /ativarvip <nível>")
-        return
-    nivel = int(context.args[0])
-    if nivel not in VIP_TIERS:
-        return await update.message.reply_text("Plano inválido.")
-    custo = VIP_TIERS[nivel]["price"]
-    if player["coins"] < custo:
-        return await update.message.reply_text("ZPC insuficiente.")
-    player["coins"] -= custo
-    player["vip"] = nivel
-    player["vip_start"] = time.time()
-    save_data(data)
-    await update.message.reply_text(f"VIP {nivel} ativado com sucesso!")
+async def ativarvipadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id not in ADMIN_IDS:
+        return await update.message.reply_text("Acesso negado.")
+    
+    if len(context.args) != 2:
+        return await update.message.reply_text("Uso: /ativarvipadmin @usuario <nível>")
+    
+    nome = context.args[0].replace("@", "").lower()
+    nivel = int(context.args[1])
 
+    if nivel not in VIP_TIERS:
+        return await update.message.reply_text("Nível VIP inválido.")
+    
+    data = load_data()
+    for uid, player in data.items():
+        if player.get("username", "").lower() == nome:
+            player["vip"] = nivel
+            player["vip_start"] = time.time()
+            save_data(data)
+            return await update.message.reply_text(
+                f"✅ VIP {nivel} ativado para @{nome}"
+            )
+    
+    await update.message.reply_text("Usuário não encontrado.")
+    
 async def alimentar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = str(update.effective_user.id)
     data = load_data()
@@ -555,7 +567,7 @@ async def main():
     app.add_handler(CommandHandler("minerar", mine))
     app.add_handler(CommandHandler("perfil", perfil))
     app.add_handler(CommandHandler("comprarvip", comprarvip))
-    app.add_handler(CommandHandler("ativarvip", ativarvip))
+    app.add_handler(CommandHandler("ativarvipadmin", ativarvipadmin))
     app.add_handler(CommandHandler("vipstatus", perfil))
     app.add_handler(CommandHandler("alimentar", alimentar))
     app.add_handler(CommandHandler("sacar", sacar))
@@ -570,7 +582,7 @@ async def main():
         BotCommand("minerar", "Minerar ZPC"),
         BotCommand("perfil", "Seu perfil"),
         BotCommand("comprarvip", "Ver planos VIP"),
-        BotCommand("ativarvip", "Ativar VIP"),
+        BotCommand("ativarvipadmin", "Ativar VIP"),
         BotCommand("vipstatus", "Status VIP"),
         BotCommand("alimentar", "Coletar rendimento diário"),
         BotCommand("sacar", "Solicitar saque"),
