@@ -421,12 +421,13 @@ async def comprarvipnivel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     tier = VIP_TIERS[nivel]
     msg = (
-        f"💎 *Compra do {tier['name']}*\n"
-        f"🔹 Preço: R${tier['price']}\n"
-        f"🔑 Chave PIX para pagamento:\n`{5204f881-cbb8-4388-ac89-2eabeb390f58}`\n\n"
-        "Após o pagamento, envie o comprovante ao administrador.\n"
-        "Quando confirmado, use /ativarvip <nível> para ativar seu plano."
-    )
+        msg = (
+    f"💎 *Compra do {tier['name']}*\n"
+    f"🔹 Preço: R${tier['price']}\n"
+    f"🔑 Chave PIX para pagamento:\n`{{5204f881-cbb8-4388-ac89-2eabeb390f58}}`\n\n"
+    "Após o pagamento, envie o comprovante ao administrador.\n"
+    "Quando confirmado, use /ativarvip <nível> para ativar seu plano."
+)
     await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
     
 async def ativarvip(update: Update, context: ContextTypes.DEFAULT_TYPE):
