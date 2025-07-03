@@ -134,7 +134,8 @@ async def perfil(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"Nível: {player.get('level', 1)}\n"
         f"XP: {player.get('xp', 0)}\n"
         f"VIP: {vip.get('name')} ({dias} dias restantes)\n"
-        f"Lucro: R${player.get('profit', 0.0):.2f}"
+        f"Lucro: R${player.get('profit', 0.0):.2f}\n"
+        f"🆔 ID: `{uid}`"
     )
 
     await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
@@ -152,27 +153,26 @@ async def comprarvip(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def ativarvipadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in ADMIN_IDS:
         return await update.message.reply_text("Acesso negado.")
-    
+
     if len(context.args) != 2:
-        return await update.message.reply_text("Uso: /ativarvipadmin @usuario <nível>")
-    
-    nome = context.args[0].replace("@", "").lower()
+        return await update.message.reply_text("Uso: /ativarvipadmin <user_id> <nível>")
+
+    uid = str(context.args[0])
     nivel = int(context.args[1])
 
     if nivel not in VIP_TIERS:
         return await update.message.reply_text("Nível VIP inválido.")
-    
+
     data = load_data()
-    for uid, player in data.items():
-        if player.get("username", "").lower() == nome:
-            player["vip"] = nivel
-            player["vip_start"] = time.time()
-            save_data(data)
-            return await update.message.reply_text(
-                f"✅ VIP {nivel} ativado para @{nome}"
-            )
-    
-    await update.message.reply_text("Usuário não encontrado.")
+    if uid not in data:
+        return await update.message.reply_text("Usuário não encontrado.")
+
+    player = data[uid]
+    player["vip"] = nivel
+    player["vip_start"] = time.time()
+    save_data(data)
+
+    await update.message.reply_text(f"✅ VIP {nivel} ativado para ID {uid}.")
     
 async def alimentar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = str(update.effective_user.id)
@@ -415,7 +415,8 @@ async def perfil(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"Nível: {player.get('level', 1)}\n"
         f"XP: {player.get('xp', 0)}\n"
         f"VIP: {vip.get('name')} ({dias} dias restantes)\n"
-        f"Lucro: R${player.get('profit', 0.0):.2f}"
+        f"Lucro: R${player.get('profit', 0.0):.2f}\n"
+        f"🆔 ID: `{uid}`"
     )
 
     await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
@@ -438,31 +439,30 @@ async def comprarvipnivel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 )
     await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
     
-async def ativarvipadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
+ async def ativarvipadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in ADMIN_IDS:
         return await update.message.reply_text("Acesso negado.")
-    
+
     if len(context.args) != 2:
-        return await update.message.reply_text("Uso: /ativarvipadmin @usuario <nível>")
-    
-    nome = context.args[0].replace("@", "").lower()
+        return await update.message.reply_text("Uso: /ativarvipadmin <user_id> <nível>")
+
+    uid = str(context.args[0])
     nivel = int(context.args[1])
 
     if nivel not in VIP_TIERS:
         return await update.message.reply_text("Nível VIP inválido.")
-    
+
     data = load_data()
-    for uid, player in data.items():
-        if player.get("username", "").lower() == nome:
-            player["vip"] = nivel
-            player["vip_start"] = time.time()
-            save_data(data)
-            return await update.message.reply_text(
-                f"✅ VIP {nivel} ativado para @{nome}"
-            )
-    
-    await update.message.reply_text("Usuário não encontrado.")
-    
+    if uid not in data:
+        return await update.message.reply_text("Usuário não encontrado.")
+
+    player = data[uid]
+    player["vip"] = nivel
+    player["vip_start"] = time.time()
+    save_data(data)
+
+    await update.message.reply_text(f"✅ VIP {nivel} ativado para ID {uid}.")   
+
 async def alimentar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = str(update.effective_user.id)
     data = load_data()
