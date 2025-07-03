@@ -399,14 +399,12 @@ async def perfil(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Novos comandos VIP
 async def comprarvip(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    msg = "💎 *Planos VIP:*
-"
+    msg = "💎 *Planos VIP:*\n"
     for i in VIP_TIERS:
         if i == 0:
             continue
         tier = VIP_TIERS[i]
-        msg += f"{tier['name']} - R${tier['price']} - {tier['days']} dias - R${tier['withdraw']}/dia
-"
+        msg += f"{tier['name']} - R${tier['price']} - {tier['days']} dias - R${tier['withdraw']}/dia\n"
     await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
 
 async def ativarvip(update: Update, context: ContextTypes.DEFAULT_TYPE):
