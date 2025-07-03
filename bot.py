@@ -1,4 +1,12 @@
+import os
+import pathlib
 
+for pycache in pathlib.Path('.').rglob('__pycache__'):
+    for file in pycache.glob('*.pyc'):
+        try:
+            file.unlink()
+        except Exception as e:
+            print(f"Erro ao deletar {file}: {e}")
 import logging
 import time
 import json
