@@ -182,6 +182,7 @@ async def alimentar(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def sacar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = str(update.effective_user.id)
+    init_player(uid)
     data = load_data()
     player = data[uid]
     if player["profit"] < 10:
@@ -580,13 +581,4 @@ async def main():
     await app.run_polling()
 if __name__ == "__main__":
     import asyncio
-
-    try:
-        asyncio.run(main())
-    except RuntimeError as e:
-        if str(e).startswith("Cannot close a running event loop"):
-            import nest_asyncio
-            nest_asyncio.apply()
-            asyncio.get_event_loop().run_until_complete(main())
-        else:
-            raise
+    asyncio.run(main())
