@@ -11,6 +11,8 @@ import logging
 import time
 import json
 import asyncio
+import nest_asyncio
+nest_asyncio.apply()
 from telegram import Update, BotCommand
 from telegram.constants import ParseMode
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
@@ -581,5 +583,4 @@ async def main():
     await app.bot.set_my_commands(comandos)
     await app.run_polling()
 if __name__ == "__main__":
-    import asyncio
-    asyncio.get_event_loop().run_until_complete(main())
+    asyncio.run(main())
