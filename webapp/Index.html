@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Zappcoin Miner</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      margin-top: 50px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    #status {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    #coins {
+      margin-top: 10px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Zappcoin Miner</h1>
+    <p>Minere ZappCoins e receba notificações no seu Telegram!</p>
+    <div id="miner">
+      <input type="text" id="userIdInput" placeholder="Seu ID do Telegram" />
+      <br>
+      <button id="startMining">Iniciar Mineração</button>
+      <div id="status">Status: Parado</div>
+      <div id="coins">ZappCoins Minerados: 0</div>
+    </div>
+  </div>
+  <script>
+    let mining = false;
+    let coins = 0;
+    let miningInterval;
+
+    const startButton = document.getElementById('startMining');
+    const statusDiv = document.getElementById('status');
+    const coinsDiv = document.getElementById('coins');
+    const userIdInput = document.getElementById('userIdInput');
+
+    startButton.addEventListener('click', () => {
+      const userId = userIdInput.value.trim();
+      if (!userId) {
+        alert('Por favor, informe seu ID do Telegram.');
+        return;
+      }
+
+      if (!mining) {
+        mining = true;
+        statusDiv.textContent = 'Status: Minerando...';
+        startButton.textContent = 'Parar Mineração';
+
+        miningInterval = setInterval(() => {
+          const minedThisRound = Math.floor(Math.random() * 5) + 1;
+          coins += minedThisRound;
+          coinsDiv.textContent = `ZappCoins Minerados: ${coins}`;
+
+          // Envia atualização para seu servidor backend
+          fetch('https://SEU_SERVIDOR/minerar', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              user_id: userId,
+              coins: minedThisRound
+            })
+          })
+          .then(response => response.json())
+          .then(data => {
+            console.log('Servidor respondeu:', data);
+          })
+          .catch(error => {
+            console.error('Erro ao enviar dados:', error);
+          });
+
+        }, 3000);
+      } else {
+        mining = false;
+        statusDiv.textContent = 'Status: Parado';
+        startButton.textContent = 'Iniciar Mineração';
+        clearInterval(miningInterval);
+      }
+    });
+  </script>
+</body>
+  </html>
